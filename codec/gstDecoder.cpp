@@ -518,7 +518,8 @@ bool gstDecoder::buildLaunchStr()
 	else if( uri.protocol == "rtsp" )
 	{
 		ss << "rtspsrc location=" << uri.string;
-		//ss << " latency=200 drop-on-latency=true";
+		ss << " latency=200 drop-on-latency=true";
+		ss << " protocols=GST_RTSP_LOWER_TRANS_TCP";
 		ss << " ! queue ! ";
 		
 		if( mOptions.codec == videoOptions::CODEC_H264 )
@@ -551,7 +552,8 @@ bool gstDecoder::buildLaunchStr()
 
 #if GST_CHECK_VERSION(1,0,0)
 	if( mOptions.codec == videoOptions::CODEC_H264 )
-		ss << "omxh264dec ! ";
+		//ss << "omxh264dec ! ";
+		ss << "nvv4l2decoder enable-max-performance=1 ! ";
 	else if( mOptions.codec == videoOptions::CODEC_H265 )
 		ss << "omxh265dec ! ";
 	else if( mOptions.codec == videoOptions::CODEC_VP8 )
@@ -610,7 +612,8 @@ bool gstDecoder::buildLaunchStr()
 	}
 	else
 	{
-		ss << "video/x-raw ! ";
+		//ss << "video/x-raw ! ";
+		ss << "video/x-raw(memory:NVMM), format=(string)NV12 ! ";
 	}
 
 	// rate-limit if requested
