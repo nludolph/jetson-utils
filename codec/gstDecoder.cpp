@@ -613,7 +613,7 @@ bool gstDecoder::buildLaunchStr()
 	else
 	{
 		//ss << "video/x-raw ! ";
-		ss << "video/x-raw(memory:NVMM), format=(string)NV12 ! ";
+		ss << "video/x-raw(memory:NVMM), format=(string)NV12 ! nvvidconv ! video/x-raw ! ";
 	}
 
 	// rate-limit if requested
