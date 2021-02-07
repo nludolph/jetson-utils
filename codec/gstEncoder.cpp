@@ -73,6 +73,7 @@ gstEncoder::gstEncoder( const videoOptions& options ) : videoOutput(options)
 	mPipeline   = NULL;
 	mNeedData   = false;
 	mOutputPort = 0;
+	mTimestamp  = 0;
 
 	mBufferYUV.SetThreaded(false);
 }
@@ -256,7 +257,7 @@ bool gstEncoder::buildLaunchStr()
 	std::ostringstream ss;
 
 	// setup appsrc input element
-	ss << "appsrc name=mysource is-live=true do-timestamp=true format=3 ! ";
+	ss << "appsrc name=mysource is-live=true format=3 ! "; //  block=true, do-timestamp=true 
 
 	// set default bitrate (if needed)
 	if( mOptions.bitRate == 0 )
@@ -475,6 +476,10 @@ bool gstEncoder::encodeYUV( void* buffer, size_t size )
 			return false;
 		}
 		
+		GST_BUFFER_PTS(gstBuffer) = (GstClockTime)mTimestamp;
+		GST_BUFFER_DURATION(gstBuffer) = gst_util_uint64_scale_int(1, GST_SECOND, mOptions.frameRate);
+		mTimestamp += GST_BUFFER_DURATION(gstBuffer);
+		
 		memcpy(map.data, buffer, size);
 		gst_buffer_unmap(gstBuffer, &map); 
 	} 
@@ -492,9 +497,9 @@ bool gstEncoder::encodeYUV( void* buffer, size_t size )
 	GST_BUFFER_DATA(gstBuffer) = GST_BUFFER_MALLOCDATA(gstBuffer);
 	GST_BUFFER_SIZE(gstBuffer) = size;
 	
-	//static size_t num_frame = 0;
-	//GST_BUFFER_TIMESTAMP(gstBuffer) = (GstClockTime)((num_frame / 30.0) * 1e9);	// for 1.0, use GST_BUFFER_PTS or GST_BUFFER_DTS instead
-	//num_frame++;
+	GST_BUFFER_PTS(gstBuffer) = (GstClockTime)mTimestamp;
+	GST_BUFFER_DURATION(gstBuffer) = gst_util_uint64_scale_int(1, GST_SECOND, mOptions.frameRate);
+	mTimestamp += GST_BUFFER_DURATION(gstBuffer);
 
 	if( mBufferCaps != NULL )
 		gst_buffer_set_caps(gstBuffer, mBufferCaps);

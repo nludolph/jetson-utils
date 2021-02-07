@@ -141,6 +141,8 @@ protected:
 	uint16_t     mOutputPort;
 
 	RingBuffer mBufferYUV;
+
+	uint64_t     mTimestamp;
 };
  
  
